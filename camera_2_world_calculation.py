@@ -53,50 +53,12 @@ def pixel_to_robot_base(pixel_x, pixel_y, depth, camera_intrinsics, camera_extri
     
     # 4. Transform point from camera frame to robot base frame
     point_robot = rotation_matrix @ point_camera + translation
-    point_robot[0] = (point_robot [0]+0.03)*1000
-    point_robot[1] = (point_robot [1] + 1.06)*1000
+    
+    
+    point_robot[0] = (point_robot [0])
+    point_robot[1] = (point_robot [1]+1.05)
     return point_robot
 
-def display_robot_base_coordinates(image, obj, camera_intrinsics, camera_extrinsics, depth=0.5478869-0.09):
-    """
-    Display the coordinates of an object in the robot base frame.
-    
-    Parameters:
-    - image: The input image
-    - obj: The detected object with center coordinates
-    - camera_intrinsics: Dictionary with camera intrinsic parameters
-    - camera_extrinsics: Dictionary with camera extrinsic parameters
-    - depth: Depth value in meters (default 0.5m if no depth camera available)
-    """
-    if obj is None:
-        return
-    
-    # Get pixel coordinates of the center
-    pixel_x, pixel_y = obj['cx'], obj['cy']
-    
-    # Convert to robot base frame
-    robot_coords = pixel_to_robot_base(
-        pixel_x, pixel_y, depth, camera_intrinsics, camera_extrinsics
-    )
-    
-    # Draw a marker at the center
-    cv2.drawMarker(image, (pixel_x, pixel_y), (0, 255, 255), cv2.MARKER_CROSS, 10, 2)
-    
-    # Display pixel coordinates
-    pixel_text = f"Pixel: ({pixel_x}, {pixel_y})"
-    cv2.putText(image, pixel_text, (pixel_x + 10, pixel_y), 
-               cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
-    
-    # Display robot base coordinates
-    x_robot, y_robot, z_robot = robot_coords
-    robot_text = f"Robot base: ({x_robot:.3f}, {y_robot:.3f}, {z_robot:.3f})m"
-    
-    if obj['color'] == "Red" and obj['shape'] == "square":
-        y_pos = 150  # Below other status messages
-        cv2.putText(image, robot_text, (10, y_pos), 
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
-
-# Example camera parameters (based on provided data)
 camera_intrinsics = {
     'height': 480,
     'width': 640,
@@ -113,66 +75,26 @@ camera_intrinsics = {
 
 camera_extrinsics = {
     'translation': {
-        'x': -0.03566,
-        'y': -0.83704,
-        'z': 0.547886
+        'x': -0.016594289106093278,
+        'y': -0.8427389324733021,
+        'z': 0.5208564791593558
     },
     'rotation': {
-        'x': -0.23674,
-        'y': 0.230630,
-        'z': 0.676611,
-        'w': 0.676611
+        'x': -0.18820164875470868,
+        'y': 0.1854343230394968,
+        'z': 0.6803675971177089,
+        'w': 0.6835891924519929
     }
 }
 
-# Calibration function to determine optimal depth value
-def calibrate_depth(known_pixel_coords, known_robot_coords, camera_intrinsics, camera_extrinsics):
-    """
-    Calibrate the depth value by finding the depth that minimizes error between
-    known robot coordinates and calculated coordinates.
-    
-    Parameters:
-    - known_pixel_coords: (x, y) tuple of pixel coordinates
-    - known_robot_coords: (x, y, z) tuple of known robot base coordinates
-    - camera_intrinsics: Dictionary with camera intrinsic parameters
-    - camera_extrinsics: Dictionary with camera extrinsic parameters
-    
-    Returns:
-    - Optimal depth value (in meters)
-    """
-    pixel_x, pixel_y = known_pixel_coords
-    target_x, target_y, target_z = known_robot_coords
-    
-    # Try different depth values
-    min_error = float('inf')
-    optimal_depth = 0.538  # Default depth
-    
-    for depth in np.linspace(0.1, 2.0, 100):  # Try depths from 0.1m to 2.0m
-        coords = pixel_to_robot_base(pixel_x, pixel_y, depth, camera_intrinsics, camera_extrinsics)
-        error = np.sqrt((coords[0] - target_x)**2 + (coords[1] - target_y)**2 + (coords[2] - target_z)**2)
-        
-        if error < min_error:
-            min_error = error
-            optimal_depth = depth
-    
-    print(f"Calibrated depth: {optimal_depth:.4f}m (Error: {min_error:.4f}m)")
-    return optimal_depth
-
-# Example usage of calibration
-# For red square at pixel (342, 324) and known to be at (0, -0.3, 0) in robot base frame
-calibrated_depth = calibrate_depth(
-    (342, 324),           # Pixel coordinates
-    (-0.2, -0.3, 0),         # Known robot base coordinates (meters)
-    camera_intrinsics,
-    camera_extrinsics
-)
-
 # Now use this calibrated depth for more accurate transformations
-robot_coords_red_circle = pixel_to_robot_base(168, 353, 0.538, camera_intrinsics, camera_extrinsics)
-robot_coords_circle_pose2 = pixel_to_robot_base(338, 351, 0.538, camera_intrinsics, camera_extrinsics)
-robot_coords_square = pixel_to_robot_base(342, 324, 0.538, camera_intrinsics, camera_extrinsics)
-robot_coords_triangle = pixel_to_robot_base(260, 324, 0.538, camera_intrinsics, camera_extrinsics)
+robot_coords_red_circle = pixel_to_robot_base(168, 353, 0.5208, camera_intrinsics, camera_extrinsics)
+robot_coords_red_square = pixel_to_robot_base(364, 436, 0.538-0.009*5, camera_intrinsics, camera_extrinsics)
+robot_coords_blue_triangle = pixel_to_robot_base(260, 324, 0.538, camera_intrinsics, camera_extrinsics)
+robot_coords_blue_square = pixel_to_robot_base(426, 323, 0.538, camera_intrinsics, camera_extrinsics)
+
 print(f"Calibrated coordinates for pixel (168, 353) red circle: {robot_coords_red_circle}")
-print(f"Calibrated coordinates for pixel (338, 351) red circle pose2: {robot_coords_circle_pose2}")
-print(f"Calibrated coordinates for pixel (342, 324) red square: {robot_coords_square}")
-print(f"Calibrated coordinates for pixel (260, 324) blue triangle: {robot_coords_triangle}")
+print(f"Calibrated coordinates for pixel (260, 324) blue triangle: {robot_coords_blue_triangle}")
+print(f"Calibrated coordinates for pixel (342, 324) red square: {robot_coords_red_square}")
+print(f"Calibrated coordinates for pixel (426, 323) blue square: {robot_coords_blue_square}")
+
