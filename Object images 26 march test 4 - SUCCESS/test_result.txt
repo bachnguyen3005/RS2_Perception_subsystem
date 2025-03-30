@@ -1,0 +1,2 @@
+^Cdinh@dinh-ThinkPad-P15-Gen-1:~/RS2_Perception_subsystem$ /bin/python3 /home/dinh/RS2_Perception_subsystem/camera_2_world_calculation.py
+Calibrated coordinates for pixel (323, 386) red square: [-0.08678921 -0.39316433 -0.40060963]

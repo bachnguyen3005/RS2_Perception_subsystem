@@ -2,16 +2,6 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 
 def create_transformation_matrix_from_quaternion(translation, rotation_quat):
-    """
-    Create a 4x4 homogeneous transformation matrix from translation vector and quaternion.
-    
-    Parameters:
-    - translation: [x, y, z] translation vector
-    - rotation_quat: [x, y, z, w] quaternion
-    
-    Returns:
-    - 4x4 transformation matrix
-    """
     # Convert quaternion to rotation matrix
     # Note: scipy expects quaternion as [w, x, y, z], but our quaternion is [x, y, z, w]
     rot = R.from_quat([rotation_quat[3], rotation_quat[0], rotation_quat[1], rotation_quat[2]])
@@ -25,16 +15,7 @@ def create_transformation_matrix_from_quaternion(translation, rotation_quat):
     return transform
 
 def create_transformation_matrix_from_euler(translation, rotation_rpy):
-    """
-    Create a 4x4 homogeneous transformation matrix from translation vector and roll-pitch-yaw angles.
-    
-    Parameters:
-    - translation: [x, y, z] translation vector
-    - rotation_rpy: [roll, pitch, yaw] in radians
-    
-    Returns:
-    - 4x4 transformation matrix
-    """
+
     # Extract roll, pitch, yaw
     roll, pitch, yaw = rotation_rpy
     
@@ -51,17 +32,6 @@ def create_transformation_matrix_from_euler(translation, rotation_rpy):
     return transform
 
 def pixel_to_camera(pixel_x, pixel_y, depth, camera_intrinsics):
-    """
-    Convert pixel coordinates to 3D point in camera frame.
-    
-    Parameters:
-    - pixel_x, pixel_y: Pixel coordinates in the image
-    - depth: Depth value in meters at the pixel
-    - camera_intrinsics: Dictionary with camera intrinsic parameters
-    
-    Returns:
-    - point_camera: 3D point in camera frame
-    """
     # Extract intrinsic parameters
     fx = camera_intrinsics['K'][0]
     fy = camera_intrinsics['K'][4]
@@ -83,34 +53,11 @@ def pixel_to_camera(pixel_x, pixel_y, depth, camera_intrinsics):
     return point_camera
 
 def transform_point(point, transformation_matrix):
-    """
-    Transform a point using a transformation matrix.
-    
-    Parameters:
-    - point: 4D homogeneous point [x, y, z, 1]
-    - transformation_matrix: 4x4 transformation matrix
-    
-    Returns:
-    - transformed_point: Transformed 3D point
-    """
     transformed_point = transformation_matrix @ point
     return transformed_point[:3]  # Return only x, y, z
 
 def pixel_to_robot_base_eye_on_hand(pixel_x, pixel_y, depth, camera_intrinsics, 
                                    camera_to_ee_transform, ee_to_base_transform):
-    """
-    Transform pixel coordinates to robot base frame with eye-on-hand configuration.
-    
-    Parameters:
-    - pixel_x, pixel_y: Pixel coordinates in the image
-    - depth: Depth value in meters at the pixel
-    - camera_intrinsics: Dictionary with camera intrinsic parameters
-    - camera_to_ee_transform: 4x4 transformation matrix from camera to end-effector
-    - ee_to_base_transform: 4x4 transformation matrix from end-effector to robot base
-    
-    Returns:
-    - point_base: Coordinates in the robot base frame (in meters)
-    """
     # 1. Convert pixel to 3D point in camera frame
     point_camera = pixel_to_camera(pixel_x, pixel_y, depth, camera_intrinsics)
     
