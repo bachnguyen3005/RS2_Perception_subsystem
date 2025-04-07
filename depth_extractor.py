@@ -14,8 +14,8 @@ class DepthPixelExtractor:
         self.depth_sub = rospy.Subscriber('/camera/depth/image_rect_raw', Image, self.depth_callback)
         
         # Pixel coordinates to extract (modify these as needed)
-        self.pixel_x = 260  # Example: center pixel for 640x480 image
-        self.pixel_y = 435
+        self.pixel_x = 340  # Example: center pixel for 640x480 image
+        self.pixel_y = 389
         
         rospy.loginfo("Depth pixel extractor initialized")
 
